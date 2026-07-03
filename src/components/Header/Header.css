@@ -1,0 +1,112 @@
+/* Header.css */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: var(--header-height);
+  background: rgba(255, 255, 255, 0.85); /* Slightly more opaque */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  backdrop-filter: blur(24px) saturate(1.5);
+  box-shadow: 0 4px 40px rgba(0, 0, 0, 0.04);
+  transition: all var(--transition-base);
+}
+
+.header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  gap: var(--space-md);
+}
+
+.header__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+  text-decoration: none;
+  transition: opacity var(--transition-fast);
+}
+
+.header__brand:hover {
+  opacity: 0.8;
+}
+
+.header__logo-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: white;
+  box-shadow: 0 4px 12px var(--color-primary-alpha);
+}
+
+.header__title-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.header__title {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--color-secondary);
+  line-height: 1.1;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.header__subtitle {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.header__nav-area {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.header__bookmark-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  background: var(--color-accent);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  margin-left: -8px;
+  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
+}
+
+/* --- Responsive --- */
+@media (max-width: 480px) {
+  .header__subtitle {
+    display: none;
+  }
+  .header__title {
+    font-size: 1.15rem;
+  }
+  .header__logo-wrapper {
+    width: 36px;
+    height: 36px;
+  }
+  .header__logo-wrapper svg {
+    width: 20px;
+    height: 20px;
+  }
+  .header__nav-area {
+    gap: var(--space-xs);
+  }
+}

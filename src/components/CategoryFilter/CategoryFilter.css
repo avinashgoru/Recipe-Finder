@@ -1,0 +1,102 @@
+/* CategoryFilter.css */
+.category-filter {
+  margin-bottom: var(--space-2xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.category-filter__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--color-secondary);
+}
+
+.category-filter__icon {
+  color: var(--color-primary);
+}
+
+.category-filter__label {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.category-filter__scroll-container {
+  overflow: hidden;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  margin-top: -4px;
+  margin-bottom: -4px;
+}
+
+.category-filter__scroll {
+  display: flex;
+  gap: var(--space-sm);
+  overflow-x: auto;
+  padding-bottom: 30px;
+  margin-bottom: -30px;
+  padding-top: var(--space-xs);
+}
+
+.category-filter__scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.category-filter__btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  font-weight: 500;
+  border: 1px solid var(--color-border);
+  transition: all var(--transition-base);
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.category-filter__btn:hover:not(.category-filter__btn--active) {
+  border-color: var(--color-primary-light);
+  color: var(--color-primary);
+  background: var(--color-surface-2);
+  transform: translateY(-1px);
+}
+
+.category-filter__btn--active {
+  color: #ffffff;
+  border-color: transparent;
+  font-weight: 600;
+}
+
+/* Framer motion animated background */
+.category-filter__active-bg {
+  position: absolute;
+  inset: 0;
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+  z-index: 0;
+  box-shadow: 0 4px 12px var(--color-primary-alpha);
+}
+
+.category-filter__text {
+  position: relative;
+  z-index: 1;
+}
+
+.category-filter__thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  position: relative;
+  z-index: 1;
+  background: var(--color-surface-2);
+}

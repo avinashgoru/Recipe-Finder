@@ -1,0 +1,55 @@
+/* EmptyState.css */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3xl) var(--space-xl);
+  gap: var(--space-md);
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto;
+  animation: empty-appear 0.45s ease;
+}
+
+@keyframes empty-appear {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.empty-state__emoji {
+  font-size: 4.5rem;
+  line-height: 1;
+  margin-bottom: var(--space-sm);
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+
+.empty-state__title {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  color: var(--color-secondary);
+  font-weight: 700;
+}
+
+.empty-state__message {
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+  max-width: 380px;
+}
+
+.empty-state__action {
+  margin-top: var(--space-sm);
+}

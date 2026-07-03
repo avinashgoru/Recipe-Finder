@@ -1,0 +1,112 @@
+/* Bookmarks.css */
+.bookmarks-page {
+  padding: var(--space-2xl) 0 var(--space-4xl);
+  min-height: calc(100vh - 80px);
+  background: var(--color-background);
+}
+
+/* --- Page Header --- */
+.bookmarks-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-bottom: var(--space-2xl);
+  padding-bottom: var(--space-xl);
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.bookmarks-page__title-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.bookmarks-page__title {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 800;
+  color: var(--color-secondary);
+  line-height: 1.1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  letter-spacing: -0.02em;
+}
+
+.bookmarks-page__title-icon {
+  color: var(--color-primary);
+}
+
+.bookmarks-page__subtitle {
+  font-size: 1.05rem;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.bookmarks-page__back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  transition: all var(--transition-base);
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.bookmarks-page__back-link:hover {
+  border-color: var(--color-primary-light);
+  color: var(--color-primary);
+  background: var(--color-surface-2);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* --- Grid --- */
+.bookmarks-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-xl);
+}
+
+/* --- Discover Button (inside EmptyState) --- */
+.bookmarks-page__discover-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 2.5rem;
+  background: var(--color-primary);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 1.05rem;
+  border-radius: var(--radius-full);
+  box-shadow: 0 4px 14px var(--color-primary-alpha);
+  transition: all var(--transition-base);
+  margin-top: var(--space-md);
+}
+
+.bookmarks-page__discover-btn:hover {
+  transform: translateY(-2px);
+  background: var(--color-primary-dark);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+}
+
+/* --- Responsive --- */
+@media (max-width: 600px) {
+  .bookmarks-page__header {
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+  .bookmarks-page__back-link {
+    width: 100%;
+    justify-content: center;
+  }
+}

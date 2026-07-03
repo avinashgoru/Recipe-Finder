@@ -1,0 +1,101 @@
+/* Home.css */
+
+/* --- Hero Section --- */
+.home-page__hero {
+  background: radial-gradient(circle at top, #1e293b 0%, var(--color-secondary) 100%);
+  padding: var(--space-3xl) 0 var(--space-2xl);
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Premium SaaS background blobs */
+.home-page__hero::before,
+.home-page__hero::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.home-page__hero::before {
+  width: 600px;
+  height: 600px;
+  background: var(--color-primary);
+  top: -200px;
+  right: -150px;
+}
+
+.home-page__hero::after {
+  width: 500px;
+  height: 500px;
+  background: var(--color-accent);
+  bottom: -200px;
+  left: -150px;
+}
+
+.home-page__hero-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.home-page__hero-title {
+  font-family: var(--font-heading);
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.home-page__hero-highlight {
+  background: linear-gradient(to right, #818cf8, #c084fc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: block;
+}
+
+.home-page__hero-subtitle {
+  font-size: 1.15rem;
+  color: rgba(255, 255, 255, 0.8);
+  max-width: 540px;
+  margin-top: var(--space-xs);
+  margin-bottom: var(--space-lg);
+  line-height: 1.6;
+}
+
+.home-page__search-container {
+  width: 100%;
+  padding: 0 var(--space-md);
+}
+
+/* --- Main Content --- */
+.home-page__content {
+  padding: var(--space-2xl) 0 var(--space-4xl);
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .home-page__hero {
+    padding: var(--space-3xl) 0 var(--space-2xl);
+  }
+  .home-page__hero-subtitle {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-page__hero-title {
+    font-size: 2rem;
+  }
+}

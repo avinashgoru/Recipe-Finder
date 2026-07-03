@@ -1,0 +1,13 @@
+/* App.css — App-level styles */
+
+/*
+ * These styles apply to the overall app shell layout.
+ * We keep them minimal here since most styling lives in component CSS files.
+ */
+
+/* Ensure the app takes full viewport height */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

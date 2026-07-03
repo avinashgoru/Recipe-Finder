@@ -58,7 +58,7 @@ function RecipeGrid({
   return (
     <section aria-label="Recipe results">
       {!isLoading && (
-        <p className="recipe-grid__count">
+        <p className="recipe-grid__count" role="status" aria-live="polite">
           {recipes.length} recipe{recipes.length !== 1 ? 's' : ''} found
         </p>
       )}

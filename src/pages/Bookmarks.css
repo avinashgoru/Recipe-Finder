@@ -2,7 +2,7 @@
 .bookmarks-page {
   padding: var(--space-2xl) 0 var(--space-4xl);
   min-height: calc(100vh - 80px);
-  background: var(--color-background);
+  background: var(--color-bg);
 }
 
 /* --- Page Header --- */

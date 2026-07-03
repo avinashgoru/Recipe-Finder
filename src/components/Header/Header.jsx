@@ -20,20 +20,22 @@ function Header({ bookmarkCount }) {
 
         <div className="header__nav-area">
           <Navbar />
-          <AnimatePresence>
-            {bookmarkCount > 0 && (
-              <motion.span 
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                className="header__bookmark-badge" 
-                aria-label={`${bookmarkCount} bookmarks`}
-              >
-                {bookmarkCount}
-              </motion.span>
-            )}
-          </AnimatePresence>
+          <div role="status" aria-live="polite" className="header__badge-container">
+            <AnimatePresence>
+              {bookmarkCount > 0 && (
+                <motion.span 
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                  className="header__bookmark-badge" 
+                  aria-label={`${bookmarkCount} saved bookmarks`}
+                >
+                  {bookmarkCount}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </header>

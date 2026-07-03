@@ -4,31 +4,33 @@ import { Search, X, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './SearchBar.css';
 
-function SearchBar({ onSearch, isLoading }) {
-  const [inputValue, setInputValue] = useState('');
+function SearchBar({ onSearch, initialValue = '', isLoading = false }) {
+  const [inputValue, setInputValue] = useState(initialValue);
   const [debouncedValue] = useDebounce(inputValue, 500);
 
-  // Auto-search when the user stops typing
   useEffect(() => {
-    if (typeof debouncedValue === 'string') {
-      onSearch(debouncedValue.trim());
-    }
+    onSearch(debouncedValue);
   }, [debouncedValue, onSearch]);
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    const trimmed = inputValue.trim();
-    if (!trimmed) return;
-    onSearch(trimmed);
-  }
-
-  function handleInputChange(e) {
-    setInputValue(e.target.value);
-  }
+  useEffect(() => {
+    setInputValue(initialValue);
+  }, [initialValue]);
 
   function handleClear() {
     setInputValue('');
-    onSearch(''); // Immediately clear results
+    onSearch('');
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === 'Escape' && inputValue) {
+      e.preventDefault();
+      handleClear();
+    }
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    onSearch(inputValue);
   }
 
   return (
@@ -50,16 +52,16 @@ function SearchBar({ onSearch, isLoading }) {
         <input
           type="text"
           className="search-bar__input"
+          placeholder="Search recipes by name or ingredient (e.g., Chicken, Pasta)..."
           value={inputValue}
-          onChange={handleInputChange}
-          placeholder="Search for your next favorite meal..."
-          aria-label="Recipe search"
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          aria-label="Search recipes"
           autoComplete="off"
-          spellCheck="false"
         />
 
         <AnimatePresence>
-          {inputValue && (
+          {inputValue && !isLoading && (
             <motion.button
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -67,7 +69,8 @@ function SearchBar({ onSearch, isLoading }) {
               type="button"
               className="search-bar__clear"
               onClick={handleClear}
-              aria-label="Clear search"
+              aria-label="Clear search input"
+              title="Clear (Esc)"
             >
               <X size={16} />
             </motion.button>
@@ -79,7 +82,7 @@ function SearchBar({ onSearch, isLoading }) {
         type="submit"
         className="search-bar__button"
         disabled={isLoading}
-        aria-label="Search"
+        aria-label="Submit recipe search"
       >
         Search
       </button>

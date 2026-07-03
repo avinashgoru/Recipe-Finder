@@ -187,13 +187,33 @@ a {
   background: var(--color-text-muted);
 }
 
-/* --- Focus Styles (Accessibility) --- */
+/* --- Focus Styles (Accessibility WCAG 2.2 AA) --- */
 :focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 4px;
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px rgba(79, 70, 229, 0.15);
 }
 
-/* Base Animations (If JS is disabled) */
+/* --- Skip Link Utility (Keyboard Navigation) --- */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  background: var(--color-primary);
+  color: #ffffff;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  z-index: 10000;
+  transition: top var(--transition-fast);
+  box-shadow: var(--shadow-lg);
+}
+
+.skip-link:focus {
+  top: 16px;
+}
+
+/* Base Animations & Reduced Motion Compliance */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;

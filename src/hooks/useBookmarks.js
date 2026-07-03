@@ -1,37 +1,46 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { loadBookmarks, saveBookmarks, isBookmarked } from '../utils/storage';
+import { loadBookmarks, saveBookmarks, isBookmarked, subscribeToStorageChanges } from '../utils/storage';
 
 function useBookmarks() {
   const [bookmarks, setBookmarks] = useState(() => loadBookmarks());
+  const isInitialMount = useRef(true);
 
+  // Sync bookmarks to localStorage whenever state changes (skipping initial mount)
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     saveBookmarks(bookmarks);
   }, [bookmarks]);
+
+  // Subscribe to storage changes across other browser tabs
+  useEffect(() => {
+    const unsubscribe = subscribeToStorageChanges((syncedBookmarks) => {
+      setBookmarks(syncedBookmarks);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const addBookmark = useCallback((meal) => {
     setBookmarks((prev) => {
       if (prev.some((m) => m.idMeal === meal.idMeal)) return prev;
-      
-      toast.success(`${meal.strMeal} saved!`, { icon: '🔖' });
       return [...prev, meal];
     });
+    // Trigger toast outside state setter for deterministic React 19 compatibility
+    toast.success(`${meal.strMeal} saved!`, { icon: '🔖' });
   }, []);
 
-  const removeBookmark = useCallback((mealId) => {
-    setBookmarks((prev) => {
-      const mealToRemove = prev.find((m) => m.idMeal === mealId);
-      if (mealToRemove) {
-        toast(`${mealToRemove.strMeal} removed`, { icon: '🗑️' });
-      }
-      return prev.filter((meal) => meal.idMeal !== mealId);
-    });
+  const removeBookmark = useCallback((mealId, mealName = 'Recipe') => {
+    setBookmarks((prev) => prev.filter((meal) => meal.idMeal !== mealId));
+    toast(`${mealName} removed`, { icon: '🗑️' });
   }, []);
 
   const toggleBookmark = useCallback(
     (meal) => {
       if (isBookmarked(bookmarks, meal.idMeal)) {
-        removeBookmark(meal.idMeal);
+        removeBookmark(meal.idMeal, meal.strMeal);
       } else {
         addBookmark(meal);
       }

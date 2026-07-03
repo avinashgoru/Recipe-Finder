@@ -42,7 +42,7 @@ function Home({ bookmarkHook }) {
             </p>
 
             <div className="home-page__search-container">
-              <SearchBar onSearch={fetchRecipes} isLoading={isLoading} />
+              <SearchBar onSearch={fetchRecipes} initialValue={searchQuery} isLoading={isLoading} />
             </div>
           </motion.div>
         </div>

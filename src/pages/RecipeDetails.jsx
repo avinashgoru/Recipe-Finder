@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, Heart, Share2, Video, List, ChefHat } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { lookupRecipeById } from '../services/mealApi';
 import Loading from '../components/Loading/Loading';
 import ErrorMessage from '../components/ErrorMessage/ErrorMessage';
@@ -79,7 +80,7 @@ function RecipeDetails({ bookmarkHook }) {
 
   function handleShare() {
     navigator.clipboard.writeText(window.location.href);
-    alert('Link copied to clipboard!'); // Simple toast for now
+    toast.success('Link copied to clipboard!', { icon: '📋' });
   }
 
   return (

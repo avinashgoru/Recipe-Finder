@@ -20,7 +20,7 @@
  * User picks category → filter allRecipes → displayRecipes
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   searchRecipes,
   fetchCategories,
@@ -29,155 +29,115 @@ import {
 } from '../services/mealApi';
 
 function useRecipes() {
-  // --- State Variables ---
-
-  // The raw recipes returned from the last search or category filter
   const [allRecipes, setAllRecipes] = useState([]);
-
-  // All categories fetched from the API (for the filter UI)
   const [categories, setCategories] = useState([]);
-
-  // The currently active search text
   const [searchQuery, setSearchQuery] = useState('');
-
-  // The currently selected category name ('' = all categories)
   const [selectedCategory, setSelectedCategory] = useState('');
-
-  // True while any network request is in-flight
   const [isLoading, setIsLoading] = useState(false);
-
-  // Holds an error message string if the API fails
   const [error, setError] = useState(null);
 
-  /**
-   * Load categories when the hook mounts (component renders for first time).
-   * We only do this ONCE, hence the empty dependency array [].
-   *
-   * BEGINNER MISTAKE: Forgetting the dependency array causes infinite loops!
-   * useEffect without [] runs after EVERY render.
-   */
+  // Reference to cancel any in-flight requests when a new search/filter is initiated
+  const abortControllerRef = useRef(null);
+
+  // Helper to reset and get a fresh abort signal
+  const getFreshSignal = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    return controller.signal;
+  }, []);
+
   useEffect(() => {
+    const controller = new AbortController();
     async function loadCategories() {
       try {
-        const data = await fetchCategories();
+        const data = await fetchCategories({ signal: controller.signal });
         setCategories(data);
       } catch (err) {
-        console.error('Failed to load categories:', err);
-        // Non-critical error — don't block the UI, just log it
+        if (err.name !== 'AbortError') {
+          console.error('Failed to load categories:', err);
+        }
       }
     }
 
     loadCategories();
-  }, []); // Empty array = run once on mount
+    return () => controller.abort();
+  }, []);
 
-  /**
-   * fetchRecipes — The main search handler.
-   * useCallback ensures this function reference stays stable,
-   * preventing unnecessary re-renders in child components.
-   *
-   * @param {string} query - The search keyword
-   */
   const fetchRecipes = useCallback(async (query = '') => {
     const trimmedQuery = query.trim();
     setSearchQuery(trimmedQuery);
-    setSelectedCategory(''); // Reset category when searching
+    setSelectedCategory('');
     setIsLoading(true);
-    setError(null); // Clear previous errors
+    setError(null);
+
+    const signal = getFreshSignal();
 
     try {
-      const meals = await searchRecipes(query);
+      const meals = await searchRecipes(trimmedQuery, { signal });
       setAllRecipes(meals);
-    } catch {
-      setError('Something went wrong while searching. Please try again.');
-      setAllRecipes([]);
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        setError('Something went wrong while searching. Please try again.');
+        setAllRecipes([]);
+      }
     } finally {
-      // finally ALWAYS runs — great for cleanup like hiding spinner
-      setIsLoading(false);
+      if (!signal.aborted) {
+        setIsLoading(false);
+      }
     }
-  }, []);
+  }, [getFreshSignal]);
 
-  /**
-   * handleCategorySelect — Filter by category.
-   * When a category is selected without an active search,
-   * we fetch from the category filter endpoint.
-   * When a search IS active, we filter the existing results.
-   *
-   * @param {string} category - Category name or '' for all
-   */
   const handleCategorySelect = useCallback(
     async (category) => {
       setSelectedCategory(category);
 
-      // If "All Categories" selected, restore the search results
       if (!category) {
-        if (searchQuery) {
-          // Re-run the current search to restore full results
-          setIsLoading(true);
-          setError(null);
-          try {
-            const meals = await searchRecipes(searchQuery);
-            setAllRecipes(meals);
-          } catch {
+        const signal = getFreshSignal();
+        setIsLoading(true);
+        setError(null);
+        try {
+          const meals = await searchRecipes(searchQuery || '', { signal });
+          setAllRecipes(meals);
+        } catch (err) {
+          if (err.name !== 'AbortError') {
             setError('Failed to reload recipes.');
-          } finally {
-            setIsLoading(false);
           }
-        } else {
-          // No active search, fetch default recipes
-          setIsLoading(true);
-          setError(null);
-          try {
-            const meals = await searchRecipes('');
-            setAllRecipes(meals);
-          } catch {
-            setError('Failed to reload recipes.');
-          } finally {
-            setIsLoading(false);
-          }
+        } finally {
+          if (!signal.aborted) setIsLoading(false);
         }
         return;
       }
 
-      // If we have active search results, filter them client-side
-      // This avoids an extra API call
       if (searchQuery && allRecipes.length > 0) {
-        // Client-side filter — already have the data
-        return; // displayRecipes (derived below) will handle this
+        return;
       }
 
-      // No active search — fetch from the category endpoint
+      const signal = getFreshSignal();
       setIsLoading(true);
       setError(null);
       try {
-        const meals = await filterByCategory(category);
-        // The category endpoint returns minimal data (no strArea).
-        // For each meal, we fetch full details to get area info.
-        // We limit to 20 to avoid hammering the API.
+        const meals = await filterByCategory(category, { signal });
         const detailed = await Promise.all(
-          meals.slice(0, 20).map((meal) => lookupRecipeById(meal.idMeal))
+          meals.slice(0, 20).map((meal) => lookupRecipeById(meal.idMeal, { signal }))
         );
         setAllRecipes(detailed.filter(Boolean));
-      } catch {
-        setError('Failed to load recipes for this category.');
-        setAllRecipes([]);
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          setError('Failed to load recipes for this category.');
+          setAllRecipes([]);
+        }
       } finally {
-        setIsLoading(false);
+        if (!signal.aborted) setIsLoading(false);
       }
     },
-    [searchQuery, allRecipes]
+    [searchQuery, allRecipes, getFreshSignal]
   );
 
-  /**
-   * displayRecipes — Derived state (computed value).
-   * useMemo recalculates this ONLY when allRecipes or selectedCategory changes.
-   * Without useMemo, this filtering would run on every single render.
-   *
-   * MENTOR NOTE: This is the "single source of truth" pattern.
-   * We don't store filtered results separately — we compute them on-the-fly.
-   */
   const displayRecipes = useMemo(() => {
     if (!selectedCategory || !searchQuery) return allRecipes;
-    // When both search and category are active, filter locally
     return allRecipes.filter(
       (meal) =>
         meal.strCategory &&
@@ -185,14 +145,13 @@ function useRecipes() {
     );
   }, [allRecipes, selectedCategory, searchQuery]);
 
-  /**
-   * clearSearch — Reset everything back to initial state.
-   */
   const clearSearch = useCallback(() => {
+    if (abortControllerRef.current) abortControllerRef.current.abort();
     setAllRecipes([]);
     setSearchQuery('');
     setSelectedCategory('');
     setError(null);
+    setIsLoading(false);
   }, []);
 
   return {

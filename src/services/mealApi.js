@@ -1,82 +1,121 @@
 /**
- * mealApi.js — API Service Layer
+ * mealApi.js — Production-Grade API Service Layer
  *
- * MENTOR NOTE: This is the "service" layer. Its ONLY job is to talk to the
- * external API. Components and hooks should never call fetch() directly.
- * Why? Because if the API URL changes, you only fix it in ONE place (here).
- * This pattern is called "Separation of Concerns."
+ * MENTOR NOTE: This service layer isolates all HTTP communication with TheMealDB API.
+ * Components and hooks never call fetch() directly.
  *
- * All functions are async — they return Promises.
- * We use async/await instead of .then() chains for cleaner, readable code.
+ * Enhancements added:
+ * 1. AbortSignal support: Allows hooks to cancel in-flight requests when users type rapidly
+ *    or navigate away, preventing memory leaks and race conditions.
+ * 2. Timeout handling: Automatically aborts hanging network requests after a timeout threshold.
+ * 3. Robust error reporting: Distinct handling for network interruptions vs HTTP error codes.
  */
 
 const BASE_URL = 'https://www.themealdb.com/api/json/v1/1';
+const DEFAULT_TIMEOUT_MS = 10000; // 10 seconds
 
 /**
- * A shared fetch helper. Every API call goes through this.
- * If the network request fails, this throws an error.
- * The caller (hook) will catch it and show an error message.
+ * A robust fetch helper supporting timeouts and cancellation.
  *
  * @param {string} endpoint - The URL to fetch
+ * @param {Object} [options={}] - Custom fetch options including AbortSignal
  * @returns {Promise<any>} - The parsed JSON data
  */
-async function fetchFromApi(endpoint) {
-  const response = await fetch(endpoint);
+async function fetchFromApi(endpoint, options = {}) {
+  const { signal: externalSignal, timeout = DEFAULT_TIMEOUT_MS, ...restOptions } = options;
 
-  // fetch() does NOT throw on 4xx/5xx status codes — we must check manually
-  if (!response.ok) {
-    throw new Error(`API request failed with status: ${response.status}`);
+  // Create an internal controller to handle timeout cancellation
+  const timeoutController = new AbortController();
+  const id = setTimeout(() => timeoutController.abort(new Error('TIMEOUT')), timeout);
+
+  // If an external signal is passed, link it to abort our internal controller
+  function handleExternalAbort() {
+    timeoutController.abort(externalSignal?.reason || new Error('ABORTED'));
   }
 
-  const data = await response.json();
-  return data;
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      clearTimeout(id);
+      throw new Error('ABORTED');
+    }
+    externalSignal.addEventListener('abort', handleExternalAbort);
+  }
+
+  try {
+    const response = await fetch(endpoint, {
+      ...restOptions,
+      signal: timeoutController.signal,
+    });
+
+    clearTimeout(id);
+    if (externalSignal) externalSignal.removeEventListener('abort', handleExternalAbort);
+
+    if (!response.ok) {
+      throw new Error(`API request failed with HTTP status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    clearTimeout(id);
+    if (externalSignal) externalSignal.removeEventListener('abort', handleExternalAbort);
+
+    // If aborted by user action or route change, re-throw cleanly
+    if (error.name === 'AbortError' || error.message === 'ABORTED') {
+      const abortErr = new Error('Request aborted');
+      abortErr.name = 'AbortError';
+      throw abortErr;
+    }
+    if (error.message === 'TIMEOUT') {
+      throw new Error('Network request timed out. Please check your internet connection.');
+    }
+    throw error;
+  }
 }
 
 /**
- * Search recipes by a keyword (e.g., "chicken", "pasta").
- * Returns an empty array if nothing is found, never null.
+ * Search recipes by keyword.
  *
  * @param {string} query - Search keyword
+ * @param {Object} [options={}] - Fetch options (e.g. { signal })
  * @returns {Promise<Array>} - Array of meal objects
  */
-export async function searchRecipes(query) {
-  const data = await fetchFromApi(`${BASE_URL}/search.php?s=${encodeURIComponent(query)}`);
-  // The API returns { meals: null } when nothing is found
+export async function searchRecipes(query, options = {}) {
+  const data = await fetchFromApi(`${BASE_URL}/search.php?s=${encodeURIComponent(query)}`, options);
   return data.meals || [];
 }
 
 /**
  * Fetch all available categories.
- * Used to populate the category filter buttons/dropdown.
  *
+ * @param {Object} [options={}] - Fetch options
  * @returns {Promise<Array>} - Array of category objects
  */
-export async function fetchCategories() {
-  const data = await fetchFromApi(`${BASE_URL}/categories.php`);
+export async function fetchCategories(options = {}) {
+  const data = await fetchFromApi(`${BASE_URL}/categories.php`, options);
   return data.categories || [];
 }
 
 /**
- * Filter recipes by a specific category (e.g., "Seafood", "Dessert").
- * NOTE: This endpoint returns limited data (no Area). We enrich cards
- * with what we have. Full details need the lookup endpoint.
+ * Filter recipes by a specific category.
  *
  * @param {string} category - Category name
+ * @param {Object} [options={}] - Fetch options
  * @returns {Promise<Array>} - Array of meal objects
  */
-export async function filterByCategory(category) {
-  const data = await fetchFromApi(`${BASE_URL}/filter.php?c=${encodeURIComponent(category)}`);
+export async function filterByCategory(category, options = {}) {
+  const data = await fetchFromApi(`${BASE_URL}/filter.php?c=${encodeURIComponent(category)}`, options);
   return data.meals || [];
 }
 
 /**
- * Look up full details for a specific recipe by its ID.
- * Used when we need complete meal data (area, instructions, etc.)
+ * Look up full details for a specific recipe by ID.
  *
  * @param {string|number} id - The meal ID
+ * @param {Object} [options={}] - Fetch options
  * @returns {Promise<Object|null>} - Full meal object or null
  */
-export async function lookupRecipeById(id) {
-  const data = await fetchFromApi(`${BASE_URL}/lookup.php?i=${id}`);
+export async function lookupRecipeById(id, options = {}) {
+  const data = await fetchFromApi(`${BASE_URL}/lookup.php?i=${id}`, options);
   return data.meals ? data.meals[0] : null;
 }

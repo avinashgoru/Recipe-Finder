@@ -63,10 +63,19 @@ function RecipeDetails({ bookmarkHook }) {
     }
   }
 
-  // Format instructions into steps
-  const instructions = recipe.strInstructions
-    .split(/\r\n|\n|\r/)
-    .filter(step => step.trim().length > 3);
+  // Format instructions into steps (handles line breaks, existing numbering, or dense paragraphs)
+  let instructions = (recipe.strInstructions || '')
+    .split(/\r\n|\n|\r|(?=\b(?:step\s*\d+|\d+[.)])\s*)/i)
+    .map(step => step.replace(/^(?:step\s*\d+|\d+[.)]|[-•*])\s*/i, '').trim())
+    .filter(step => step.length > 3);
+
+  // If still one massive paragraph, split by sentences into digestible steps
+  if (instructions.length === 1 && instructions[0].length > 180) {
+    instructions = instructions[0]
+      .split(/(?<=\.)\s+(?=[A-Z])/)
+      .map(s => s.trim())
+      .filter(s => s.length > 3);
+  }
 
   // Extract YouTube ID safely
   let youtubeId = null;

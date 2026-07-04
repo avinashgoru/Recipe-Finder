@@ -10,6 +10,17 @@ const fadeUp = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
 };
 
+const floatAnimation = (delay = 0, duration = 4) => ({
+  y: [0, -12, 0],
+  rotate: [0, 2, -2, 0],
+  transition: {
+    duration,
+    delay,
+    repeat: Infinity,
+    ease: "easeInOut"
+  }
+});
+
 function Home({ bookmarkHook }) {
   const {
     recipes,
@@ -22,11 +33,50 @@ function Home({ bookmarkHook }) {
     handleCategorySelect,
   } = useRecipes();
 
+  const popularSearches = ['Chicken', 'Pasta', 'Curry', 'Salad', 'Cake', 'Seafood'];
+
   return (
     <main className="home-page">
       {/* --- Hero Search Section --- */}
       <section className="home-page__hero">
-        <div className="container">
+        <div className="container home-page__hero-container">
+          {/* Decorative Floating Food Illustrations (Desktop Only) */}
+          <motion.div 
+            className="home-page__floating-badge home-page__floating-badge--top-left"
+            animate={floatAnimation(0, 4.5)}
+            aria-hidden="true"
+          >
+            <span className="home-page__floating-emoji">🍕</span>
+            <span className="home-page__floating-text">Artisan Pizza</span>
+          </motion.div>
+
+          <motion.div 
+            className="home-page__floating-badge home-page__floating-badge--top-right"
+            animate={floatAnimation(1, 5)}
+            aria-hidden="true"
+          >
+            <span className="home-page__floating-emoji">🥗</span>
+            <span className="home-page__floating-text">Fresh Salads</span>
+          </motion.div>
+
+          <motion.div 
+            className="home-page__floating-badge home-page__floating-badge--bottom-left"
+            animate={floatAnimation(0.5, 4.2)}
+            aria-hidden="true"
+          >
+            <span className="home-page__floating-emoji">🍝</span>
+            <span className="home-page__floating-text">Homemade Pasta</span>
+          </motion.div>
+
+          <motion.div 
+            className="home-page__floating-badge home-page__floating-badge--bottom-right"
+            animate={floatAnimation(1.5, 4.8)}
+            aria-hidden="true"
+          >
+            <span className="home-page__floating-emoji">🥑</span>
+            <span className="home-page__floating-text">Healthy Bowls</span>
+          </motion.div>
+
           <motion.div 
             className="home-page__hero-content"
             initial="hidden"
@@ -38,18 +88,50 @@ function Home({ bookmarkHook }) {
               <span className="home-page__hero-highlight"> Favorite Meal</span>
             </h2>
             <p className="home-page__hero-subtitle">
-              Search from thousands of recipes, explore diverse cuisines, and master new dishes.
+              Search from thousands of recipes, explore diverse cuisines, and master new dishes with step-by-step guidance.
             </p>
 
             <div className="home-page__search-container">
               <SearchBar onSearch={fetchRecipes} initialValue={searchQuery} isLoading={isLoading} />
             </div>
+
+            {/* Popular Search Tags CTA Hierarchy */}
+            <div className="home-page__popular-tags" role="region" aria-label="Popular searches">
+              <span className="home-page__popular-label">Trending:</span>
+              <div className="home-page__popular-list">
+                {popularSearches.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    className="home-page__popular-tag"
+                    onClick={() => fetchRecipes(tag)}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
           </motion.div>
+
+          {/* Animated Scroll Indicator */}
+          <motion.a
+            href="#explore"
+            className="home-page__scroll-indicator"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, y: [0, 8, 0] }}
+            transition={{ delay: 1, duration: 2, repeat: Infinity }}
+            aria-label="Scroll to explore recipes"
+          >
+            <span className="home-page__scroll-text">Explore Recipes</span>
+            <div className="home-page__scroll-icon">
+              <div className="home-page__scroll-dot" />
+            </div>
+          </motion.a>
         </div>
       </section>
 
       {/* --- Main Content Section --- */}
-      <section className="home-page__content">
+      <section id="explore" className="home-page__content">
         <div className="container">
           <CategoryFilter
             categories={categories}

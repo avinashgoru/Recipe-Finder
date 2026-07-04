@@ -97,8 +97,8 @@
   gap: var(--space-sm);
   padding: 10px 18px;
   background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: var(--radius-full);
   color: #ffffff;
@@ -106,6 +106,7 @@
   font-size: 0.9rem;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
   pointer-events: none;
+  -webkit-user-select: none;
   user-select: none;
 }
 

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Heart, Share2, Video, List, ChefHat } from 'lucide-react';
+import { ChevronLeft, Heart, Share2, Video, List, ChefHat, Globe, Utensils, BookOpen, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { lookupRecipeById } from '../services/mealApi';
+import { lookupRecipeById, filterByCategory } from '../services/mealApi';
 import Loading from '../components/Loading/Loading';
 import ErrorMessage from '../components/ErrorMessage/ErrorMessage';
+import RecipeCard from '../components/RecipeCard/RecipeCard';
 import './RecipeDetails.css';
 
 const pageVariants = {
@@ -18,23 +19,35 @@ function RecipeDetails({ bookmarkHook }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const [recipe, setRecipe] = useState(null);
+  const [relatedRecipes, setRelatedRecipes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [checkedIngredients, setCheckedIngredients] = useState([]);
 
   function toggleIngredient(index) {
-    setCheckedIngredients((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
-    );
+    setCheckedIngredients((prev) => {
+      const next = prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index];
+      if (next.length === ingredients.length && ingredients.length > 0) {
+        toast.success('All ingredients checked off! Ready to cook 🍳', { id: 'all-checked' });
+      }
+      return next;
+    });
   }
 
   useEffect(() => {
     async function loadRecipe() {
       setIsLoading(true);
+      setCheckedIngredients([]);
       try {
         const data = await lookupRecipeById(id);
         if (data) {
           setRecipe(data);
+          try {
+            const related = await filterByCategory(data.strCategory);
+            setRelatedRecipes(related.filter(r => r.idMeal !== id).slice(0, 4));
+          } catch {
+            setRelatedRecipes([]);
+          }
         } else {
           setError("Recipe not found.");
         }
@@ -77,6 +90,30 @@ function RecipeDetails({ bookmarkHook }) {
       .filter(s => s.length > 3);
   }
 
+  // Helper to highlight ingredient names inside instructions
+  function renderHighlightedStep(stepText) {
+    if (!ingredients.length) return stepText;
+    
+    const ingredientNames = ingredients
+      .map(i => i.ingredient.trim())
+      .filter(name => name.length >= 3)
+      .sort((a, b) => b.length - a.length);
+
+    if (!ingredientNames.length) return stepText;
+
+    const escapedNames = ingredientNames.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const regex = new RegExp(`(\\b(?:${escapedNames.join('|')})\\b)`, 'gi');
+
+    const parts = stepText.split(regex);
+    return parts.map((part, idx) => {
+      const isMatch = ingredientNames.some(name => name.toLowerCase() === part.toLowerCase());
+      if (isMatch) {
+        return <mark key={idx} className="recipe-details__ingredient-highlight">{part}</mark>;
+      }
+      return part;
+    });
+  }
+
   // Extract YouTube ID safely
   let youtubeId = null;
   if (recipe.strYoutube) {
@@ -114,8 +151,29 @@ function RecipeDetails({ bookmarkHook }) {
           <div className="recipe-details__header">
             <h1 className="recipe-details__title">{recipe.strMeal}</h1>
             <div className="recipe-details__meta">
-              <span className="recipe-details__tag">{recipe.strCategory}</span>
-              <span className="recipe-details__tag recipe-details__tag--area">{recipe.strArea}</span>
+              <span className="recipe-details__tag">
+                <Utensils size={14} /> {recipe.strCategory}
+              </span>
+              <span className="recipe-details__tag recipe-details__tag--area">
+                <Globe size={14} /> {recipe.strArea}
+              </span>
+              <span className="recipe-details__tag recipe-details__tag--info">
+                <List size={14} /> {ingredients.length} Ingredients
+              </span>
+              <span className="recipe-details__tag recipe-details__tag--info">
+                {youtubeId ? <Video size={14} /> : <BookOpen size={14} />} 
+                {youtubeId ? 'Video Available' : 'Step-by-Step Guide'}
+              </span>
+              {recipe.strSource && (
+                <a 
+                  href={recipe.strSource} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="recipe-details__tag recipe-details__tag--source"
+                >
+                  <Sparkles size={14} /> Verified Source
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -195,7 +253,9 @@ function RecipeDetails({ bookmarkHook }) {
               {instructions.map((step, index) => (
                 <div key={index} className="recipe-details__step">
                   <div className="recipe-details__step-number">{index + 1}</div>
-                  <p className="recipe-details__step-text">{step}</p>
+                  <p className="recipe-details__step-text">
+                    {renderHighlightedStep(step)}
+                  </p>
                 </div>
               ))}
             </div>
@@ -215,6 +275,25 @@ function RecipeDetails({ bookmarkHook }) {
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 ></iframe>
+              </div>
+            </div>
+          )}
+
+          {/* Related Recipes ("You May Also Like") */}
+          {relatedRecipes.length > 0 && (
+            <div className="recipe-details__section recipe-details__related-section">
+              <h3 className="recipe-details__section-title">
+                <Sparkles size={22} className="text-primary" /> You May Also Like
+              </h3>
+              <div className="recipe-details__related-grid">
+                {relatedRecipes.map((relRecipe) => (
+                  <RecipeCard
+                    key={relRecipe.idMeal}
+                    recipe={relRecipe}
+                    onBookmarkToggle={bookmarkHook.toggleBookmark}
+                    isBookmarked={bookmarkHook.checkIsBookmarked(relRecipe.idMeal)}
+                  />
+                ))}
               </div>
             </div>
           )}

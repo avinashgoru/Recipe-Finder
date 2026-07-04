@@ -4,6 +4,7 @@ import { AnimatePresence } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
 import useBookmarks from './hooks/useBookmarks';
 import Header from './components/Header/Header';
+import Footer from './components/Footer/Footer';
 import Loading from './components/Loading/Loading';
 import './App.css';
 
@@ -73,8 +74,11 @@ function App() {
           },
         }}
       />
-      <Header bookmarkCount={bookmarkHook.bookmarks.length} />
-      <AnimatedRoutes bookmarkHook={bookmarkHook} />
+      <div className="app-layout">
+        <Header bookmarkCount={bookmarkHook.bookmarks.length} />
+        <AnimatedRoutes bookmarkHook={bookmarkHook} />
+        <Footer />
+      </div>
     </BrowserRouter>
   );
 }

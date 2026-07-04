@@ -33,8 +33,6 @@ function Home({ bookmarkHook }) {
     handleCategorySelect,
   } = useRecipes();
 
-  const popularSearches = ['Chicken', 'Pasta', 'Curry', 'Salad', 'Cake', 'Seafood'];
-
   return (
     <main className="home-page">
       {/* --- Hero Search Section --- */}
@@ -93,23 +91,6 @@ function Home({ bookmarkHook }) {
 
             <div className="home-page__search-container">
               <SearchBar onSearch={fetchRecipes} initialValue={searchQuery} isLoading={isLoading} />
-            </div>
-
-            {/* Popular Search Tags CTA Hierarchy */}
-            <div className="home-page__popular-tags" role="region" aria-label="Popular searches">
-              <span className="home-page__popular-label">Trending:</span>
-              <div className="home-page__popular-list">
-                {popularSearches.map((tag) => (
-                  <button
-                    key={tag}
-                    type="button"
-                    className="home-page__popular-tag"
-                    onClick={() => fetchRecipes(tag)}
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
             </div>
           </motion.div>
 

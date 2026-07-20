@@ -68,6 +68,7 @@
   color: var(--color-primary);
   background: var(--color-surface-2);
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
 }
 
 .category-filter__btn--active {
@@ -83,7 +84,7 @@
   background: var(--color-primary);
   border-radius: var(--radius-full);
   z-index: 0;
-  box-shadow: 0 4px 12px var(--color-primary-alpha);
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.25);
 }
 
 .category-filter__text {

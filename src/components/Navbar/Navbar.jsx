@@ -1,8 +1,10 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { Home, Bookmark } from 'lucide-react';
 import './Navbar.css';
 
 function Navbar() {
+  const location = useLocation();
+
   return (
     <nav className="navbar" aria-label="Main navigation">
       <NavLink

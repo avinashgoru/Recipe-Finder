@@ -4,8 +4,8 @@
   top: 0;
   z-index: 100;
   height: var(--header-height);
-  background: rgba(255, 255, 255, 0.85); /* Slightly more opaque */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+  background: var(--glass-bg);
+  border-bottom: 1px solid var(--glass-border);
   -webkit-backdrop-filter: blur(24px) saturate(1.5);
   backdrop-filter: blur(24px) saturate(1.5);
   box-shadow: 0 4px 40px rgba(0, 0, 0, 0.04);
@@ -87,7 +87,7 @@
   font-weight: 700;
   border-radius: var(--radius-full);
   margin-left: -8px;
-  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
+  box-shadow: 0 4px 12px var(--color-primary-alpha);
 }
 
 /* --- Responsive --- */

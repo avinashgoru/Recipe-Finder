@@ -51,18 +51,40 @@ function useRecipes() {
 
   useEffect(() => {
     const controller = new AbortController();
-    async function loadCategories() {
+    async function initData() {
       try {
+        // Load categories
         const data = await fetchCategories({ signal: controller.signal });
         setCategories(data);
+
+        // Fetch initial discover feed from multiple categories to expand collection
+        const defaultCats = ['Chicken', 'Beef', 'Vegetarian', 'Seafood'];
+        const results = await Promise.allSettled(
+          defaultCats.map(c => filterByCategory(c, { signal: controller.signal }))
+        );
+        
+        let combined = [];
+        results.forEach((res, i) => {
+          if (res.status === 'fulfilled' && res.value) {
+            combined = combined.concat(res.value.map(m => ({...m, strCategory: defaultCats[i]})));
+          }
+        });
+
+        // Filter out recipes without images and avoid duplicates
+        const validMeals = combined.filter(m => m.strMealThumb);
+        const uniqueMeals = Array.from(new Map(validMeals.map(item => [item.idMeal, item])).values());
+        
+        // Shuffle for a fresh feed and limit to a healthy amount
+        const shuffled = uniqueMeals.sort(() => 0.5 - Math.random()).slice(0, 60);
+        setAllRecipes(shuffled);
       } catch (err) {
         if (err.name !== 'AbortError') {
-          console.error('Failed to load categories:', err);
+          console.error('Failed to init data:', err);
         }
       }
     }
 
-    loadCategories();
+    initData();
     return () => controller.abort();
   }, []);
 
@@ -120,10 +142,14 @@ function useRecipes() {
       setError(null);
       try {
         const meals = await filterByCategory(category, { signal });
-        const detailed = await Promise.all(
-          meals.slice(0, 20).map((meal) => lookupRecipeById(meal.idMeal, { signal }))
-        );
-        setAllRecipes(detailed.filter(Boolean));
+        
+        // Expand recipe collection: Don't limit to 20, use all from category
+        // Avoid slow lookup for every item, inject category directly
+        const mappedMeals = meals.map(m => ({ ...m, strCategory: category }));
+        
+        // Image validation: Only keep recipes with valid image URLs
+        const validMeals = mappedMeals.filter(m => m.strMealThumb);
+        setAllRecipes(validMeals);
       } catch (err) {
         if (err.name !== 'AbortError') {
           setError('Failed to load recipes for this category.');
@@ -137,12 +163,18 @@ function useRecipes() {
   );
 
   const displayRecipes = useMemo(() => {
-    if (!selectedCategory || !searchQuery) return allRecipes;
-    return allRecipes.filter(
-      (meal) =>
-        meal.strCategory &&
-        meal.strCategory.toLowerCase() === selectedCategory.toLowerCase()
-    );
+    let result = allRecipes;
+    
+    if (selectedCategory) {
+      result = result.filter(
+        (meal) =>
+          meal.strCategory &&
+          meal.strCategory.toLowerCase() === selectedCategory.toLowerCase()
+      );
+    }
+    
+    // Ensure we only ever display valid images
+    return result.filter(meal => meal.strMealThumb);
   }, [allRecipes, selectedCategory, searchQuery]);
 
   const clearSearch = useCallback(() => {

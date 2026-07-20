@@ -59,24 +59,24 @@
   border-radius: var(--radius-sm);
 }
 
-/* Shimmer Animation */
+/* Premium Shimmer Animation */
 .shimmer {
   background: var(--color-surface-2);
   background-image: linear-gradient(
-    90deg,
-    var(--color-surface-2) 0px,
-    var(--color-border) 40px,
-    var(--color-surface-2) 80px
+    100deg,
+    rgba(226, 232, 240, 0.4) 0%,
+    rgba(241, 245, 249, 0.8) 50%,
+    rgba(226, 232, 240, 0.4) 100%
   );
-  background-size: 600px;
-  animation: shimmer 1.5s infinite linear;
+  background-size: 400% 100%;
+  animation: premium-shimmer 2s infinite linear;
 }
 
-@keyframes shimmer {
+@keyframes premium-shimmer {
   0% {
-    background-position: -300px;
+    background-position: 100% 0;
   }
   100% {
-    background-position: 300px;
+    background-position: -100% 0;
   }
 }

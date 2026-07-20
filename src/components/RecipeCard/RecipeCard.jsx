@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Heart, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import PremiumImage from '../PremiumImage/PremiumImage';
 import './RecipeCard.css';
 
 const cardVariants = {
@@ -43,10 +44,9 @@ function RecipeCard({ meal, isBookmarked, onBookmarkToggle }) {
       <Link to={`/recipe/${meal.idMeal}`} className="recipe-card__link">
         {/* --- Image Section --- */}
         <div className="recipe-card__image-wrapper">
-          <img
+          <PremiumImage
             src={meal.strMealThumb}
             alt={meal.strMeal}
-            className="recipe-card__image"
             loading="lazy"
           />
         </div>

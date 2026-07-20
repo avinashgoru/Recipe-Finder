@@ -14,6 +14,10 @@
 const BASE_URL = 'https://www.themealdb.com/api/json/v1/1';
 const DEFAULT_TIMEOUT_MS = 10000; // 10 seconds
 
+// In-memory cache to optimize performance and reduce API calls
+const apiCache = new Map();
+const CACHE_TTL = 1000 * 60 * 15; // 15 minutes
+
 /**
  * A robust fetch helper supporting timeouts and cancellation.
  *
@@ -22,7 +26,17 @@ const DEFAULT_TIMEOUT_MS = 10000; // 10 seconds
  * @returns {Promise<any>} - The parsed JSON data
  */
 async function fetchFromApi(endpoint, options = {}) {
-  const { signal: externalSignal, timeout = DEFAULT_TIMEOUT_MS, ...restOptions } = options;
+  const { signal: externalSignal, timeout = DEFAULT_TIMEOUT_MS, bypassCache = false, ...restOptions } = options;
+
+  // Check cache first
+  if (!bypassCache && apiCache.has(endpoint)) {
+    const cachedEntry = apiCache.get(endpoint);
+    if (Date.now() - cachedEntry.timestamp < CACHE_TTL) {
+      return cachedEntry.data;
+    } else {
+      apiCache.delete(endpoint); // clear stale cache
+    }
+  }
 
   // Create an internal controller to handle timeout cancellation
   const timeoutController = new AbortController();
@@ -55,6 +69,15 @@ async function fetchFromApi(endpoint, options = {}) {
     }
 
     const data = await response.json();
+    
+    // Save to cache
+    if (!bypassCache) {
+      apiCache.set(endpoint, {
+        timestamp: Date.now(),
+        data,
+      });
+    }
+    
     return data;
   } catch (error) {
     clearTimeout(id);
@@ -117,5 +140,17 @@ export async function filterByCategory(category, options = {}) {
  */
 export async function lookupRecipeById(id, options = {}) {
   const data = await fetchFromApi(`${BASE_URL}/lookup.php?i=${id}`, options);
+  return data.meals ? data.meals[0] : null;
+}
+
+/**
+ * Fetch a single random recipe.
+ *
+ * @param {Object} [options={}] - Fetch options
+ * @returns {Promise<Object|null>} - Random meal object or null
+ */
+export async function fetchRandomRecipe(options = {}) {
+  // We use bypassCache so we actually get a random one when requested
+  const data = await fetchFromApi(`${BASE_URL}/random.php`, { ...options, bypassCache: true });
   return data.meals ? data.meals[0] : null;
 }

@@ -3,6 +3,13 @@ import useRecipes from '../hooks/useRecipes';
 import SearchBar from '../components/SearchBar/SearchBar';
 import CategoryFilter from '../components/CategoryFilter/CategoryFilter';
 import RecipeGrid from '../components/RecipeGrid/RecipeGrid';
+import RecipeCard from '../components/RecipeCard/RecipeCard';
+import PremiumImage from '../components/PremiumImage/PremiumImage';
+import { Sparkles, Clock, Utensils } from 'lucide-react';
+import useRecentRecipes from '../hooks/useRecentRecipes';
+import useRecipeOfTheDay from '../hooks/useRecipeOfTheDay';
+import useSEO from '../hooks/useSEO';
+import { Link } from 'react-router-dom';
 import './Home.css';
 
 const fadeUp = {
@@ -32,6 +39,14 @@ function Home({ bookmarkHook }) {
     fetchRecipes,
     handleCategorySelect,
   } = useRecipes();
+
+  const { recentRecipes } = useRecentRecipes();
+  const { recipeOfTheDay, isLoading: isFeaturedLoading } = useRecipeOfTheDay();
+
+  useSEO({
+    title: 'Explore',
+    description: 'Find and save your favorite recipes from around the world.'
+  });
 
   return (
     <main className="home-page">
@@ -114,6 +129,57 @@ function Home({ bookmarkHook }) {
       {/* --- Main Content Section --- */}
       <section id="explore" className="home-page__content">
         <div className="container">
+          
+          {/* Recipe of the Day Section */}
+          {recipeOfTheDay && !isFeaturedLoading && !searchQuery && !selectedCategory && (
+            <div className="home-page__featured">
+              <div className="home-page__featured-header">
+                <h3 className="home-page__section-title">
+                  <Sparkles className="text-primary" size={24} /> Recipe of the Day
+                </h3>
+              </div>
+              <div className="home-page__featured-card">
+                <div className="home-page__featured-image-wrapper">
+                  <PremiumImage src={recipeOfTheDay.strMealThumb} alt={recipeOfTheDay.strMeal} />
+                </div>
+                <div className="home-page__featured-content">
+                  <span className="home-page__featured-tag">{recipeOfTheDay.strCategory}</span>
+                  <h4 className="home-page__featured-title">{recipeOfTheDay.strMeal}</h4>
+                  <p className="home-page__featured-desc">
+                    Discover this handpicked culinary delight. Perfect for your next meal!
+                  </p>
+                  <Link to={`/recipe/${recipeOfTheDay.idMeal}`} className="home-page__featured-btn">
+                    <Utensils size={18} /> View Recipe
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Recently Viewed Section */}
+          {recentRecipes.length > 0 && !searchQuery && !selectedCategory && (
+            <div className="home-page__recent">
+              <div className="home-page__recent-header">
+                <h3 className="home-page__section-title">
+                  <Clock className="text-primary" size={24} /> Recently Viewed
+                </h3>
+              </div>
+              <div className="home-page__recent-grid">
+                {recentRecipes.slice(0, 4).map(meal => (
+                  <RecipeCard
+                    key={`recent-${meal.idMeal}`}
+                    meal={meal}
+                    onBookmarkToggle={bookmarkHook.toggleBookmark}
+                    isBookmarked={bookmarkHook.checkIsBookmarked(meal.idMeal)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="home-page__explore-header">
+            <h3 className="home-page__section-title">Explore All Recipes</h3>
+          </div>
           <CategoryFilter
             categories={categories}
             selectedCategory={selectedCategory}

@@ -108,7 +108,7 @@
 
 .footer__list a:hover {
   color: var(--color-primary);
-  transform: translateX(2px);
+  transform: translateX(3px);
 }
 
 .footer__ext-link {
@@ -140,8 +140,8 @@
 }
 
 .footer__heart {
-  color: #e11d48;
-  fill: #e11d48;
+  color: var(--color-primary);
+  fill: var(--color-primary);
 }
 
 .footer__back-to-top {
@@ -164,7 +164,7 @@
   color: #ffffff;
   border-color: var(--color-primary);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .footer__arrow-icon {
